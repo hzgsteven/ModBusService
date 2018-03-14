@@ -35,6 +35,17 @@ public class TCPHandler implements Runnable {
 			}*/
 		} catch (IOException e) {
 			e.printStackTrace();
+			sk.cancel();
+			try {
+				if (sc != null && sc.socket() != null) {
+					sc.socket().close();
+				} else if (sc != null) {
+					sc.close();
+				}
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+			return;
 		}
 
 	}
@@ -62,8 +73,10 @@ public class TCPHandler implements Runnable {
 	
 	private void send(byte[] data) throws IOException {
 		data = this.correctData(data);
-		String dataString = new String(data)+"\r\n";
-		ByteBuffer buf = ByteBuffer.wrap(dataString.getBytes()); // wrap自动把buf的position设为0, 所以不需要在flip()
+		System.out.println("矫正数据" + HexUtils.binaryToHexString(data));
+		/*String dataString = new String(data)+"\r\n";
+		System.out.println("输出数据" + dataString);*/
+		ByteBuffer buf = ByteBuffer.wrap(data); // wrap自动把buf的position设为0, 所以不需要在flip()
 
 		while (buf.hasRemaining()) {
 			sc.write(buf); // 回传给client对应的字符串, 发送buf的position位置到limit位置为止之间的内容
@@ -111,7 +124,7 @@ public class TCPHandler implements Runnable {
 			}
             byte[] buf = new byte[blockLen];
             if (in.read(buf) != -1) {
-				System.out.print(HexUtils.binaryToHexString(buf));
+				System.out.print("原始数据"+HexUtils.binaryToHexString(buf));
             	outStream.write(buf);
             }
             System.out.println();
